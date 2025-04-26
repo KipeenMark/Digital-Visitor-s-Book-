@@ -8,11 +8,41 @@ const VisitorForm = () => {
     purpose: '',
     hostPerson: '',
   });
+  const [message, setMessage] = useState({ text: '', type: '' });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Will be implemented when we connect to backend
-    console.log('Form submitted:', formData);
+    try {
+      const visitorData = {
+        ...formData,
+        timeIn: new Date().toISOString()
+      };
+
+      const response = await fetch('http://localhost:5000/api/visitors', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(visitorData)
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setMessage({ text: 'Visitor checked in successfully!', type: 'success' });
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          purpose: '',
+          hostPerson: '',
+        });
+      } else {
+        setMessage({ text: data.error || 'Failed to register visitor', type: 'error' });
+      }
+    } catch (error) {
+      setMessage({ text: 'Error connecting to server', type: 'error' });
+    }
   };
 
   const handleChange = (e) => {
@@ -25,6 +55,11 @@ const VisitorForm = () => {
   return (
     <div className="form-container">
       <h2 className="mb-6" style={{ fontSize: '1.5rem', fontWeight: '600' }}>Register New Visitor</h2>
+      {message.text && (
+        <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+          {message.text}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label className="form-label">Full Name</label>
@@ -87,7 +122,7 @@ const VisitorForm = () => {
         </div>
 
         <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-          Register Visit
+          Check In Visitor
         </button>
       </form>
     </div>
