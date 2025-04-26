@@ -7,6 +7,7 @@ const VisitorForm = () => {
     phone: '',
     purpose: '',
     hostPerson: '',
+    location: '', // New field for visitor's location
   });
   const [message, setMessage] = useState({ text: '', type: '' });
 
@@ -36,6 +37,7 @@ const VisitorForm = () => {
           phone: '',
           purpose: '',
           hostPerson: '',
+          location: '',
         });
       } else {
         setMessage({ text: data.error || 'Failed to register visitor', type: 'error' });
@@ -92,6 +94,19 @@ const VisitorForm = () => {
             name="phone"
             value={formData.phone}
             onChange={handleChange}
+            className="form-input"
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Where are you from?</label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            placeholder="Company, Organization, or City"
             className="form-input"
             required
           />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const VisitorsList = () => {
   const [visitors, setVisitors] = useState([]);
@@ -116,6 +116,7 @@ const VisitorsList = () => {
             <thead>
               <tr>
                 <th>Visitor</th>
+                <th>From</th>
                 <th>Contact</th>
                 <th>Purpose & Host</th>
                 <th>Time In</th>
@@ -128,6 +129,9 @@ const VisitorsList = () => {
               {visitors.map((visitor) => (
                 <tr key={visitor._id}>
                   <td>{visitor.name}</td>
+                  <td>
+                    <div style={{ color: 'var(--gray-700)' }}>{visitor.location}</div>
+                  </td>
                   <td>
                     <div>{visitor.email}</div>
                     <div style={{ color: 'var(--gray-700)', fontSize: '0.875rem' }}>{visitor.phone}</div>

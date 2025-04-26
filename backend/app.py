@@ -36,7 +36,7 @@ def get_visitors():
 def add_visitor():
     try:
         visitor_data = request.json
-        required_fields = ['name', 'email', 'phone', 'purpose', 'hostPerson']
+        required_fields = ['name', 'email', 'phone', 'purpose', 'hostPerson', 'location']
         visitor_data['timeIn'] = visitor_data.get('timestamp') or datetime.now().isoformat()
         visitor_data['timeOut'] = None
         visitor_data['status'] = 'active'
