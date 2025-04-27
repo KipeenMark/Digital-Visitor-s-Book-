@@ -2,6 +2,60 @@
 
 A modern, web-based visitor management system that helps organizations efficiently track and manage visitors. This application provides real-time visitor tracking, comprehensive reporting, and an intuitive user interface.
 
+## 📸 Screenshots
+
+### Registration Form
+![Visitor Registration](./screenshots/registration.png)
+*Visitor registration form with input validation*
+
+### Visitors List
+![Visitors List](./screenshots/visitors-list.png)
+*Today's visitors list with filtering options*
+
+### Dashboard
+![Dashboard](./screenshots/dashboard.png)
+*Analytics dashboard showing visitor statistics*
+
+## 🔄 Data Flow Diagrams
+
+### Context Level DFD
+```mermaid
+graph TD
+    V[Visitor] --> |Registration| S[Digital Visitors Book System]
+    R[Receptionist] --> |Manage Visitors| S
+    S --> |Statistics| A[Admin]
+    S --> |Check-out| V
+    S --> |Reports| R
+```
+
+### Level 0 DFD
+```mermaid
+graph TD
+    V[Visitor] --> |Input Details| R[Registration Process]
+    R --> |Store| DB[(Database)]
+    R --> |Notify| H[Host]
+    
+    C[Check-out Process] --> |Update| DB
+    C --> |Confirm| V
+    
+    DB --> |Fetch Data| D[Dashboard Process]
+    D --> |Display| S[Statistics]
+    
+    DB --> |Query| F[Filter Process]
+    F --> |Show| L[Visitors List]
+```
+
+### Level 1 DFD - Registration Process
+```mermaid
+graph TD
+    V[Visitor] --> |Fill Form| VF[Visitor Form]
+    VF --> |Validate| VP[Validation Process]
+    VP --> |Save| DB[(Database)]
+    VP --> |Generate| B[Badge/ID]
+    VP --> |Send| N[Notification]
+    N --> H[Host]
+```
+
 ## ✨ Features
 
 - **Real-time Visitor Management**
@@ -140,6 +194,17 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Flask team for the lightweight backend framework
 - Chart.js for beautiful data visualization
 - All contributors and supporters of this project
+
+## 📝 Note About Screenshots
+
+To add your own screenshots:
+1. Create a `screenshots` directory in your frontend directory
+2. Take screenshots of your application:
+   - Registration form
+   - Visitors list with filters
+   - Dashboard with charts
+3. Save the screenshots in PNG format
+4. Update the image paths in this README
 
 ---
 
