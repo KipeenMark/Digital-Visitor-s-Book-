@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
 const VisitorsList = () => {
+  const today = new Date();
   const [visitors, setVisitors] = useState([]);
+  const [filteredVisitors, setFilteredVisitors] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [checkingOut, setCheckingOut] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(today.getDate().toString().padStart(2, '0'));
+  const [selectedMonth, setSelectedMonth] = useState((today.getMonth() + 1).toString().padStart(2, '0'));
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear().toString());
 
   useEffect(() => {
     fetchVisitors();
@@ -18,6 +23,12 @@ const VisitorsList = () => {
       }
       const data = await response.json();
       setVisitors(data);
+      filterVisitors(
+        today.getDate().toString().padStart(2, '0'),
+        (today.getMonth() + 1).toString().padStart(2, '0'),
+        today.getFullYear().toString(),
+        data
+      );
       setError('');
     } catch (err) {
       setError('Error loading visitors. Please try again later.');
@@ -83,6 +94,40 @@ const VisitorsList = () => {
     );
   };
 
+  const filterVisitors = (day, month, year, visitorsList = visitors) => {
+    let filtered = [...visitorsList];
+
+    if (day || month || year) {
+      filtered = filtered.filter(visitor => {
+        if (!visitor.timeIn) return false;
+        
+        const visitDate = new Date(visitor.timeIn);
+        const visitDay = visitDate.getDate().toString().padStart(2, '0');
+        const visitMonth = (visitDate.getMonth() + 1).toString().padStart(2, '0');
+        const visitYear = visitDate.getFullYear().toString();
+
+        const matchDay = !day || visitDay === day;
+        const matchMonth = !month || visitMonth === month;
+        const matchYear = !year || visitYear === year;
+
+        return matchDay && matchMonth && matchYear;
+      });
+    }
+
+    setFilteredVisitors(filtered);
+  };
+
+  const resetFilters = () => {
+    setSelectedDay(today.getDate().toString().padStart(2, '0'));
+    setSelectedMonth((today.getMonth() + 1).toString().padStart(2, '0'));
+    setSelectedYear(today.getFullYear().toString());
+    filterVisitors(
+      today.getDate().toString().padStart(2, '0'),
+      (today.getMonth() + 1).toString().padStart(2, '0'),
+      today.getFullYear().toString()
+    );
+  };
+
   if (loading) {
     return <div className="loading">Loading visitors...</div>;
   }
@@ -90,14 +135,74 @@ const VisitorsList = () => {
   return (
     <div className="table-container">
       <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--gray-200)' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '600', margin: 0 }}>Visitors List</h2>
-        <button 
-          onClick={fetchVisitors} 
-          className="btn btn-secondary"
-          style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}
-        >
-          Refresh List
-        </button>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: '600', margin: 0 }}>Today's Visitors List</h2>
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+          <select
+            value={selectedDay}
+            onChange={(e) => {
+              setSelectedDay(e.target.value);
+              filterVisitors(e.target.value, selectedMonth, selectedYear);
+            }}
+            className="form-select"
+            style={{ padding: '0.5rem' }}
+          >
+            <option value="">Day</option>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+              <option key={day} value={day.toString().padStart(2, '0')}>
+                {day}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedMonth}
+            onChange={(e) => {
+              setSelectedMonth(e.target.value);
+              filterVisitors(selectedDay, e.target.value, selectedYear);
+            }}
+            className="form-select"
+            style={{ padding: '0.5rem' }}
+          >
+            <option value="">Month</option>
+            {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+              <option key={month} value={month.toString().padStart(2, '0')}>
+                {new Date(2024, month - 1).toLocaleString('default', { month: 'long' })}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedYear}
+            onChange={(e) => {
+              setSelectedYear(e.target.value);
+              filterVisitors(selectedDay, selectedMonth, e.target.value);
+            }}
+            className="form-select"
+            style={{ padding: '0.5rem' }}
+          >
+            <option value="">Year</option>
+            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+
+          <button 
+            onClick={fetchVisitors} 
+            className="btn btn-secondary"
+            style={{ padding: '0.5rem 1rem' }}
+          >
+            Refresh List
+          </button>
+          <button 
+            onClick={resetFilters}
+            className="btn btn-outline-secondary"
+            style={{ padding: '0.5rem 1rem' }}
+          >
+            Today's List
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -107,7 +212,7 @@ const VisitorsList = () => {
       )}
 
       <div style={{ overflowX: 'auto' }}>
-        {visitors.length === 0 ? (
+        {filteredVisitors.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--gray-500)' }}>
             No visitors found
           </div>
@@ -126,7 +231,7 @@ const VisitorsList = () => {
               </tr>
             </thead>
             <tbody>
-              {visitors.map((visitor) => (
+              {filteredVisitors.map((visitor) => (
                 <tr key={visitor._id}>
                   <td>{visitor.name}</td>
                   <td>
