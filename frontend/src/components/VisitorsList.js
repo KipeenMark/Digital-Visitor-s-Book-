@@ -71,6 +71,24 @@ const VisitorsList = () => {
     return new Date(dateString).toLocaleString();
   };
 
+  const calculateDuration = (timeIn, timeOut) => {
+    if (!timeIn || !timeOut) return '-';
+    
+    const start = new Date(timeIn);
+    const end = new Date(timeOut);
+    const diff = end - start;
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours === 0) {
+      return `${minutes}m`;
+    } else if (minutes === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${minutes}m`;
+  };
+
   const getStatusBadge = (status) => {
     const style = {
       padding: '0.25rem 0.75rem',
@@ -226,6 +244,7 @@ const VisitorsList = () => {
                 <th>Purpose & Host</th>
                 <th>Time In</th>
                 <th>Time Out</th>
+                <th>Duration</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -247,6 +266,13 @@ const VisitorsList = () => {
                   </td>
                   <td>{formatDateTime(visitor.timeIn)}</td>
                   <td>{formatDateTime(visitor.timeOut)}</td>
+                  <td style={{
+                    color: visitor.status === 'completed' ? 'var(--gray-700)' : '#10b981',
+                    fontWeight: '500',
+                    fontFamily: 'monospace'
+                  }}>
+                    {calculateDuration(visitor.timeIn, visitor.timeOut)}
+                  </td>
                   <td>{getStatusBadge(visitor.status)}</td>
                   <td>
                     {visitor.status === 'active' && (
