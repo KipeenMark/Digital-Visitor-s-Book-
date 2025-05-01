@@ -12,7 +12,15 @@ const options = {
     },
     title: {
       display: true,
-      text: 'Daily Visitors'
+      text: 'Visitor Trends'
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        precision: 0
+      }
     }
   }
 };
@@ -90,12 +98,32 @@ function Dashboard() {
 
   const calculateStats = () => {
     const totalVisitors = filteredVisitors.length;
+    const activeVisitors = filteredVisitors.filter(visitor => !visitor.timeOut).length;
+
+    // Get the current month's data
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
     
+    // Get previous month's data
+    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+    // Filter visitors for current and previous months
+    const currentMonthVisitors = visitors.filter(visitor => {
+      const visitDate = new Date(visitor.timeIn);
+      return visitDate.getMonth() === currentMonth && visitDate.getFullYear() === currentYear;
+    });
+
+    const previousMonthVisitors = visitors.filter(visitor => {
+      const visitDate = new Date(visitor.timeIn);
+      return visitDate.getMonth() === previousMonth && visitDate.getFullYear() === previousMonthYear;
+    });
+
     // Get dates for the last 7 days
-    const today = new Date();
     const last7Days = Array.from({length: 7}, (_, i) => {
       const date = new Date();
-      date.setDate(today.getDate() - i);
+      date.setDate(currentDate.getDate() - i);
       return date.toISOString().split('T')[0];
     }).reverse();
 
@@ -108,13 +136,17 @@ function Dashboard() {
       return acc;
     }, {});
 
-    // Calculate active visitors (those without timeOut)
-    const activeVisitors = filteredVisitors.filter(visitor => !visitor.timeOut).length;
+    // Calculate month-over-month growth
+    const monthlyGrowth = previousMonthVisitors.length > 0
+      ? ((currentMonthVisitors.length - previousMonthVisitors.length) / previousMonthVisitors.length * 100).toFixed(1)
+      : 100;
 
     return {
       totalVisitors,
       activeVisitors,
-      dailyVisitors,
+      currentMonthVisitors: currentMonthVisitors.length,
+      previousMonthVisitors: previousMonthVisitors.length,
+      monthlyGrowth,
       labels: last7Days.map(date => {
         const [year, month, day] = date.split('-');
         return `${day}/${month}`;
@@ -216,24 +248,39 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="card p-4">
-          <h3 className="text-lg font-semibold mb-2">Total Visitors</h3>
-          <p className="text-3xl font-bold text-primary">{stats.totalVisitors}</p>
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="card p-4">
+            <h3 className="text-lg font-semibold mb-2">Total Visitors</h3>
+            <p className="text-3xl font-bold text-primary">{stats.totalVisitors}</p>
+          </div>
+          
+          <div className="card p-4">
+            <h3 className="text-lg font-semibold mb-2">Active Visitors</h3>
+            <p className="text-3xl font-bold text-success">
+              {stats.activeVisitors}
+            </p>
+          </div>
         </div>
-        
+
         <div className="card p-4">
-          <h3 className="text-lg font-semibold mb-2">Active Visitors</h3>
-          <p className="text-3xl font-bold text-success">
-            {stats.activeVisitors}
-          </p>
-        </div>
-        
-        <div className="card p-4">
-          <h3 className="text-lg font-semibold mb-2">Average Daily Visitors</h3>
-          <p className="text-3xl font-bold text-purple-600">
-            {Math.round(stats.data.reduce((a, b) => a + b, 0) / stats.data.length)}
-          </p>
+          <h3 className="text-lg font-semibold mb-2">Monthly Overview</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">This Month</p>
+              <p className="text-2xl font-bold text-indigo-600">{stats.currentMonthVisitors}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Last Month</p>
+              <p className="text-2xl font-bold text-gray-600">{stats.previousMonthVisitors}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-sm text-gray-600">Monthly Growth</p>
+              <p className={`text-xl font-bold ${parseFloat(stats.monthlyGrowth) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {stats.monthlyGrowth}%
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

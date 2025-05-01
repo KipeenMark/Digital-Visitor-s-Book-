@@ -10,6 +10,7 @@ const VisitorsList = () => {
   const [selectedDay, setSelectedDay] = useState(today.getDate().toString().padStart(2, '0'));
   const [selectedMonth, setSelectedMonth] = useState((today.getMonth() + 1).toString().padStart(2, '0'));
   const [selectedYear, setSelectedYear] = useState(today.getFullYear().toString());
+  const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'monthly'
 
   useEffect(() => {
     fetchVisitors();
@@ -115,7 +116,17 @@ const VisitorsList = () => {
   const filterVisitors = (day, month, year, visitorsList = visitors) => {
     let filtered = [...visitorsList];
 
-    if (day || month || year) {
+    if (viewMode === 'monthly' && month && year) {
+      filtered = filtered.filter(visitor => {
+        if (!visitor.timeIn) return false;
+        
+        const visitDate = new Date(visitor.timeIn);
+        const visitMonth = (visitDate.getMonth() + 1).toString().padStart(2, '0');
+        const visitYear = visitDate.getFullYear().toString();
+
+        return visitMonth === month && visitYear === year;
+      });
+    } else if (day || month || year) {
       filtered = filtered.filter(visitor => {
         if (!visitor.timeIn) return false;
         
@@ -132,6 +143,7 @@ const VisitorsList = () => {
       });
     }
 
+    filtered.sort((a, b) => new Date(b.timeIn) - new Date(a.timeIn));
     setFilteredVisitors(filtered);
   };
 
@@ -153,7 +165,27 @@ const VisitorsList = () => {
   return (
     <div className="table-container">
       <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--gray-200)' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '600', margin: 0 }}>Today's Visitors List</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: '600', margin: 0 }}>
+            {viewMode === 'daily' ? "Today's Visitors List" : "Monthly Visitors List"}
+          </h2>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={() => setViewMode('daily')}
+              className={`btn ${viewMode === 'daily' ? 'btn-primary' : 'btn-outline-primary'}`}
+              style={{ padding: '0.5rem 1rem' }}
+            >
+              Daily View
+            </button>
+            <button
+              onClick={() => setViewMode('monthly')}
+              className={`btn ${viewMode === 'monthly' ? 'btn-primary' : 'btn-outline-primary'}`}
+              style={{ padding: '0.5rem 1rem' }}
+            >
+              Monthly View
+            </button>
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
           <select
             value={selectedDay}
@@ -164,12 +196,18 @@ const VisitorsList = () => {
             className="form-select"
             style={{ padding: '0.5rem' }}
           >
-            <option value="">Day</option>
-            {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-              <option key={day} value={day.toString().padStart(2, '0')}>
-                {day}
-              </option>
-            ))}
+            {viewMode === 'daily' ? (
+              <>
+                <option value="">Day</option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                  <option key={day} value={day.toString().padStart(2, '0')}>
+                    {day}
+                  </option>
+                ))}
+              </>
+            ) : (
+              <option value="">All Days</option>
+            )}
           </select>
 
           <select
@@ -218,7 +256,7 @@ const VisitorsList = () => {
             className="btn btn-outline-secondary"
             style={{ padding: '0.5rem 1rem' }}
           >
-            Today's List
+            {viewMode === 'daily' ? "Today's List" : "Current Month"}
           </button>
         </div>
       </div>
