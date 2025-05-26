@@ -1,15 +1,48 @@
-import { useState } from 'react';
+import { useState } from 'react'; // useState is a React hook for managing state in functional components
 
-const VisitorForm = () => {
+// const VisitorForm = () => { , (Component Declaration)  declares a functional component using arrow function syntax.
+// usestate , initialize a form state object with multiple fields: formData : The state variable containing all form fields,setFormData :The function used to update the form state.
+ 
+const VisitorForm = () => { 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    purpose: '',
-    hostPerson: '',
+    name: '', // for visitor's full name
+    email: '', //for visitor's email address
+    phone: '', // for visitor's phone number
+    purpose: '', //for the purpose of the visit
+    hostPerson: '', //for the name of the person being visited
     location: '', // New field for visitor's location
   });
+
+  // async: keyword indicates this function handles asynchronous operations (like API calls)
+  // setMessage: function to update the message state with success or error messages
+  // e.preventDefault :stops the form from triggering a page reload
+  // ... : is used to copy all form fields
+  //toISOString() : converts the current date/time to a standardized format
   const [message, setMessage] = useState({ text: '', type: '' });
+
+  const makeRequest = async (visitorData) => {
+    const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    
+    try {
+      const response = await fetch(`${BASE_URL}/api/visitors`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(visitorData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Request failed:', error);
+      throw error;
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,31 +52,18 @@ const VisitorForm = () => {
         timeIn: new Date().toISOString()
       };
 
-      const response = await fetch('http://localhost:5000/api/visitors', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(visitorData)
+      const data = await makeRequest(visitorData);
+      setMessage({ text: 'Visitor checked in successfully!', type: 'success' });
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        purpose: '',
+        hostPerson: '',
+        location: '',
       });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        setMessage({ text: 'Visitor checked in successfully!', type: 'success' });
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          purpose: '',
-          hostPerson: '',
-          location: '',
-        });
-      } else {
-        setMessage({ text: data.error || 'Failed to register visitor', type: 'error' });
-      }
     } catch (error) {
-      setMessage({ text: 'Error connecting to server', type: 'error' });
+      setMessage({ text: error.message || 'Error connecting to server', type: 'error' });
     }
   };
 
