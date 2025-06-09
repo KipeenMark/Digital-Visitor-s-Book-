@@ -1,10 +1,11 @@
-import { Link, useLocation } from 'react-router-dom';
-// link - React Router component for navigation without page reload,
-//  uselocation - Hook to access the current URL location
-import '../Navbar.css'; //CSS file for styling
+// Navbar.js 
+// 1. Imports
+import {link,uselocation} from 'react-router-dom' ;
+import '../Navbar.css' ;
 
+// 2.Component structure
 const Navbar = () => {
-  const location = useLocation();
+  const location = uselocation();
 
   const isActiveRoute = (path) => {
     return location.pathname === path ? "nav-item active" : "nav-item";
@@ -14,33 +15,31 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="container">
         <div className="navbar-content">
-          <Link to="/" className="navbar-brand">
+          <link to="/" className="navbar-brand">
             Digital Visitor's Book
-          </Link>
+          </link>
           <div className="nav-links">
-            <Link
+            <link
               to="/register"
               className={isActiveRoute('/register')}
             >
               Register Visitor
-            </Link>
-            <Link
+            </link>
+            <link
               to="/visitors"
               className={isActiveRoute('/visitors')}
             >
               Visitors List
-            </Link>
-            <Link
+            </link>
+            <link
               to="/dashboard"
               className={isActiveRoute('/dashboard')}
             >
               Dashboard
-            </Link>
+            </link>
           </div>
         </div>
       </div>
     </nav>
   );
 };
-
-export default Navbar;
